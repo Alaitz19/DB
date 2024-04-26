@@ -42,6 +42,34 @@ public class QueriesExamples {
 			}
 		}
 	}
+	public static void getDepartments() {
+		System.out.println(" ===> Get the Content of the table Department <===");
+		String querysql = "SELECT * " + "FROM department";
+		Connection conn = null;
+		try {
+			conn = MyDBConnection.getConnection();
+			Statement stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(querysql);
+			// loop through the result set
+			System.out.println("     => Printing the content ");
+			while (rs.next()) {
+				System.out.println(
+						rs.getString("Dname") + "\t" + rs.getString("Dnumber") + "\t" + rs.getString("Mgr_ssn") + "\t" + rs.getString("Mgr_start_date"));
+			}
+		} catch (SQLException ex) {
+			System.out.println(ex.getMessage());
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} finally {
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 
 	private static String INSERTtourguide = "INSERT INTO DBI51.tourguide " // change to your account
 			+ "(GuideId, guidename, guidephone) VALUES (?, ?, ?)";
@@ -56,7 +84,20 @@ public class QueriesExamples {
 		pstmt.execute();
 		pstmt.close();
 	}
+	private static String INSERTdepartment = "INSERT INTO DBI51.department " // change to your account
+			+ "(Dname, Dnumber, Mgr_ssn,Mgr_start_date) VALUES (?, ?, ?,?)";
 
+	public static void insertRowDepartment(Connection conn, String nameRow, int content1, String content2, String content3 )
+			throws SQLException {
+		PreparedStatement pstmt = null;
+		pstmt = conn.prepareStatement(INSERTdepartment);
+		pstmt.setString(1, nameRow);
+		pstmt.setInt(2, content1);
+		pstmt.setString(3, content2);
+		pstmt.setString(4, content3);
+		pstmt.execute();
+		pstmt.close();
+	}
 	// @SuppressWarnings("unused")
 	public static void exampleTransaction() {
 		Connection conn = null;
@@ -67,6 +108,7 @@ public class QueriesExamples {
 			conn.setAutoCommit(false);
 			insertRowGuide(conn, "50", "Daniela", 6667);
 			insertRowGuide(conn, "51", "Leire", 66678);
+			insertRowDepartment(conn, "Marketing", 2, "453453453", "2002-05-22");
 			// if code reached here, means main work is done successfully
 			savepoint1 = conn.setSavepoint("savedfirst2");
 			insertRowGuide(conn, "52", "Stella", 66679);
@@ -104,7 +146,52 @@ public class QueriesExamples {
 
 		}
 	}
+	public static void exampleTransaction2() {
+		Connection conn = null;
+		Savepoint savepoint1 = null;
+		try {
+			conn = MyDBConnection.getConnection();
+			// disable Autocommit
+			conn.setAutoCommit(false);
+			insertRowDepartment(conn, "Marketing", 2, "453453453", "2002-05-22");
+			// if code reached here, means main work is done successfully
+			savepoint1 = conn.setSavepoint("savedfirst2");
+			insertRowDepartment(conn, "Public relations", 3, "453453453", "2000-06-20");
+			insertRowGuide(conn, "52", "Stella", 66679);
+			insertRowGuide(conn, "52", "Stella", 66679);
+			// now commit transaction
+			conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				if (savepoint1 == null) {
+					System.out.println("JDBC WHOLE Transaction rolled back successfully");
+					// SQLException occurred when inserting first 2 insertRowGuide
+					conn.rollback();
+				} else {
+					// exception occurred after savepoint
+					// we can ignore it by rollback to the savepoint
+					System.out.println("Exception after savepoint1. roll back successfully");
+					conn.rollback(savepoint1);
+					// lets commit now
+					conn.commit();
+				}
+			} catch (SQLException e1) {
+				System.out.println("SQLException in rollback" + e.getMessage());
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} finally {
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
 
+		}
+	}
 
 	/**
 	 *
@@ -114,7 +201,9 @@ public class QueriesExamples {
 	 */
 	public static void main(String[] args) {
 		exampleTransaction();
+		exampleTransaction2();
 		getTableGuides();
+		getDepartments();
 
 	}
 }
