@@ -25,8 +25,9 @@ public class TransactionExampleTC {
 			// loop through the result set
 			System.out.println("     => Printing the content ");
 			while (rs.next()) {
-				System.out.println(
-						rs.getString("Fname") + "\t\t" + rs.getString("Minit") + "\t" + rs.getString("Lname")+ rs.getString("Ssn")+ rs.getString("Bdate")+ rs.getString("Address")+ rs.getString("Sex")+ rs.getString("Salary")+ rs.getString("Super_Ssn")+ rs.getString("Dno"));
+				System.out.format("%-15s %-5s %-15s %-15s %-15s %-25s %-5s %-10s %-15s %-5s%n",
+						rs.getString("Fname"),rs.getString("Minit"), rs.getString("Lname"),rs.getString("Ssn"), rs.getString("Bdate"),rs.getString("Address"),rs.getString("Sex"),rs.getString("Salary"),rs.getString("Super_Ssn"),rs.getString("Dno"));
+
 			}
 		} catch (SQLException ex) {
 			System.out.println(ex.getMessage());
