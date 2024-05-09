@@ -23,6 +23,8 @@ public class ProjectTC {
     }
 	public static void main(String[] args) {
 		Connection conn = null;
+		//Savepoint sv=null;
+		Savepoint sv1=null;
         try {
             System.out.println("Welcome to this query application\n");
             System.out.println("Conection to Tommaso's database:\n");
@@ -30,9 +32,11 @@ public class ProjectTC {
             conn.setAutoCommit(false);
             System.out.println("First let's make some configurations in the database:\n");
 
-            // Insert into dependent table, it allows me to insert the same rows more the once TODO must check
+            //INSERT in Dependent table
             System.out.println("Inserting into dependent table without using savepoint:");
-            insertDependent(conn, "123456789", "Tom", "M", "2010-09-30","Father");
+            insertDependent(conn, "123456789", "Tom", "M", "1992-09-30","Son");
+            insertDependent(conn, "123456789", "Mark", "M", "1988-03-30","Uncle");
+            
             conn.commit();
             System.out.println("Transaction committed successfully.");
             
@@ -43,36 +47,40 @@ public class ProjectTC {
             
             if(dl.equalsIgnoreCase("yes")) {
             	deleteDependent(conn, "123456789", "Tom");
+            	deleteDependent(conn, "123456789", "Mark");
+            	
             	System.out.println("Delete committed successfully.");
             	conn.commit();
             }
             
-            //INSERT into PROJECT table
-            System.out.println("Inserting into project table without using savepoint:");
-            insertProject(conn, "progetto strano", 55, "Padova", 5);
+            //INSERT into project table using SAVEPOINT
+           
+            System.out.println("Inserting into project table using savepoint:");
+            insertProject(conn, "ProductJ", 55, "New York", 5);
+            sv1=conn.setSavepoint();
+            insertProject(conn,"ProductT",22,"Rome",1);
+            insertProject(conn, "ProductFake", 55, "Los Angeles", 8);
             conn.commit();
             System.out.println("Transaction committed successfully.");
           
-            //TODO to be removed, just for debugging purpose
-            System.out.println("DELETE?"); 
-            String d=input.nextLine();
-            
-            if(d.equalsIgnoreCase("yes")) {
-            	deleteProject(conn, 55);
-            	System.out.println("Delete committed successfully.");
-            	conn.commit();
-            }
-            
-            
-            
-            
-            
+            // DELETE FROM PROJECT TABLE
+            System.out.println("DELETE:"); 
+        	deleteProject(conn, 55);
+        	
+        	System.out.println("Delete committed successfully.");
+        	conn.commit();       
+            input.close(); 
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
             try {
                 if (conn != null) {
                     System.out.println("Rolling back transaction...");
-                    conn.rollback();
+                    if(sv1!=null) {
+	                    conn.rollback(sv1);
+	                    conn.commit();
+                    }else{
+                    	conn.rollback();
+                    }
                 }
             } catch (SQLException ex) {
                 System.out.println("Error rolling back transaction: " + ex.getMessage());
@@ -103,14 +111,14 @@ public class ProjectTC {
         }
     }
 	private static void deleteDependent(Connection conn, String Essn,String Dependent_name) throws SQLException {
-	        String deleteDpnd = "DELETE FROM dependent WHERE (Essn = ? and Dependent_name= ?)";
-	        try (PreparedStatement pstmt = conn.prepareStatement(deleteDpnd)) {
-	        	pstmt.setString(1, Essn);
-	        	pstmt.setString(2, Dependent_name);
-	            int rowsAffected = pstmt.executeUpdate();
-	            System.out.println("Deleted " + rowsAffected + " dependent(s) from dependent table.");
-	        }
-	    }
+        String deleteDpnd = "DELETE FROM dependent WHERE (Essn = ? and Dependent_name= ?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(deleteDpnd)) {
+        	pstmt.setString(1, Essn);
+        	pstmt.setString(2, Dependent_name);
+            int rowsAffected = pstmt.executeUpdate();
+            System.out.println("Deleted " + rowsAffected + " dependent(s) from dependent table.");
+        }
+    }
 	private static void insertProject(Connection conn, String Pname, int Pnumber, String Plocation, int Dnum ) throws SQLException {
         String sql = "INSERT INTO project (Pname, Pnumber, Plocation,Dnum) VALUES (?, ?, ?, ?);";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -124,7 +132,7 @@ public class ProjectTC {
     }
 	private static void deleteProject(Connection conn, int Pnumber) throws SQLException {
 		//have to remove from WORKS_ON table first
-        String deleteSql = "DELETE FROM works_on WHERE Pnumber = ?";
+        String deleteSql = "DELETE FROM works_on WHERE Pno= ?";
         try (PreparedStatement pstmt = conn.prepareStatement(deleteSql)) {
             pstmt.setInt(1, Pnumber);
             int rowsAffected = pstmt.executeUpdate();
@@ -138,5 +146,4 @@ public class ProjectTC {
             System.out.println("Deleted " + rowsAffected + " project(s) from project table.");
         }
     }
-
 }
