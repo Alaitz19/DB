@@ -30,6 +30,7 @@ public class ProjectTC {
             conn.setAutoCommit(false);
             System.out.println("First let's make some configurations in the database:\n");
 
+            // Insert into dependent table, it allows me to insert the same rows more the once TODO must check
             System.out.println("Inserting into dependent table without using savepoint:");
             insertDependent(conn, "123456789", "Tom", "M", "2010-09-30","Father");
             conn.commit();
@@ -37,7 +38,19 @@ public class ProjectTC {
             
           //TODO to be removed, just for debugging purpose
             System.out.println("DELETE?"); 
-            //if()
+            Scanner input=new Scanner(System.in);
+            String dl=input.nextLine();
+            
+            if(dl.equalsIgnoreCase("yes")) {
+            	deleteDependent(conn, "123456789", "Tom");
+            	System.out.println("Delete committed successfully.");
+            	conn.commit();
+            }
+            
+            
+            
+            
+            
             
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -63,7 +76,7 @@ public class ProjectTC {
 
 	}
 	private static void insertDependent(Connection conn, String Essn, String Dependent_name, String Sex, String Bdate, String Relationship) throws SQLException {
-        String sql = "INSERT INTO DEPENDENT (Essn, Dependent_name, Sex, Bdate, Relationship) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO DEPENDENT (Essn, Dependent_name, Sex, Bdate, Relationship) VALUES (?, ?, ?, ?, ?);";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, Essn);
             pstmt.setString(2, Dependent_name);
@@ -74,5 +87,14 @@ public class ProjectTC {
             System.out.println("Inserted row into dependent table: " + Essn + " "+ Dependent_name );
         }
     }
+	private static void deleteDependent(Connection conn, String Essn,String Dependent_name) throws SQLException {
+	        String deleteDpnd = "DELETE FROM DEPENDENT WHERE (Essn = ? and Dependent_name= ?)";
+	        try (PreparedStatement pstmt = conn.prepareStatement(deleteDpnd)) {
+	        	pstmt.setString(1, Essn);
+	        	pstmt.setString(2, Dependent_name);
+	            int rowsAffected = pstmt.executeUpdate();
+	            System.out.println("Deleted " + rowsAffected + " dependent(s) from DEPENDENT table.");
+	        }
+	    }
 
 }
