@@ -23,7 +23,7 @@ public class ProjectTC {
     }
 	public static void main(String[] args) {
 		Connection conn = null;
-		//Savepoint sv=null;
+		Scanner input=new Scanner(System.in);
 		Savepoint sv1=null;
         try {
             System.out.println("Welcome to this query application\n");
@@ -42,7 +42,6 @@ public class ProjectTC {
             
           //TODO to be removed, just for debugging purpose
             System.out.println("DELETE?"); 
-            Scanner input=new Scanner(System.in);
             String dl=input.nextLine();
             
             if(dl.equalsIgnoreCase("yes")) {
@@ -96,7 +95,28 @@ public class ProjectTC {
             }
         }
 
-
+        //5 TRANSACTION
+        System.out.println("5 TRANSACTIONS");
+        boolean flag=true;
+        while(flag==true) {
+        	System.out.println("==> Choose one 1-5 or anything else to exit <==");
+        	int n=input.nextInt();
+        	switch(n) {
+        		case 1:
+        			transaction1();
+        		case 2:
+        			transaction2();
+        		case 3:
+        			transaction3();
+        		case 4:
+        			transaction4();
+        		case 5:
+        			transaction5();
+        		default:
+        			break;
+        	}
+        
+        }
 	}
 	private static void insertDependent(Connection conn, String Essn, String Dependent_name, String Sex, String Bdate, String Relationship) throws SQLException {
         String sql = "INSERT INTO dependent (Essn, Dependent_name, Sex, Bdate, Relationship) VALUES (?, ?, ?, ?, ?);";
@@ -110,6 +130,9 @@ public class ProjectTC {
             System.out.println("Inserted row into dependent table: " + Essn + " "+ Dependent_name );
         }
     }
+	
+	
+	// ADDING AND REMOVING SOME DATA
 	private static void deleteDependent(Connection conn, String Essn,String Dependent_name) throws SQLException {
         String deleteDpnd = "DELETE FROM dependent WHERE (Essn = ? and Dependent_name= ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(deleteDpnd)) {
@@ -146,4 +169,26 @@ public class ProjectTC {
             System.out.println("Deleted " + rowsAffected + " project(s) from project table.");
         }
     }
+	
+	// 5 TRANSACTIONS
+	
+	public static void transaction1() {
+		
+	}
+	
+	public static void transaction2() {
+		
+	}
+	
+	public static void transaction3() {
+		
+	}
+	
+	public static void transaction4() {
+		
+	}
+	
+	public static void transaction5() {
+		
+	}
 }
