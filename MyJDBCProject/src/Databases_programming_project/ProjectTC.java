@@ -47,6 +47,21 @@ public class ProjectTC {
             	conn.commit();
             }
             
+            //INSERT into PROJECT table
+            System.out.println("Inserting into project table without using savepoint:");
+            insertProject(conn, "progetto strano", 55, "Padova", 5);
+            conn.commit();
+            System.out.println("Transaction committed successfully.");
+          
+            //TODO to be removed, just for debugging purpose
+            System.out.println("DELETE?"); 
+            String d=input.nextLine();
+            
+            if(d.equalsIgnoreCase("yes")) {
+            	deleteProject(conn, 55);
+            	System.out.println("Delete committed successfully.");
+            	conn.commit();
+            }
             
             
             
@@ -76,7 +91,7 @@ public class ProjectTC {
 
 	}
 	private static void insertDependent(Connection conn, String Essn, String Dependent_name, String Sex, String Bdate, String Relationship) throws SQLException {
-        String sql = "INSERT INTO DEPENDENT (Essn, Dependent_name, Sex, Bdate, Relationship) VALUES (?, ?, ?, ?, ?);";
+        String sql = "INSERT INTO dependent (Essn, Dependent_name, Sex, Bdate, Relationship) VALUES (?, ?, ?, ?, ?);";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, Essn);
             pstmt.setString(2, Dependent_name);
@@ -88,13 +103,40 @@ public class ProjectTC {
         }
     }
 	private static void deleteDependent(Connection conn, String Essn,String Dependent_name) throws SQLException {
-	        String deleteDpnd = "DELETE FROM DEPENDENT WHERE (Essn = ? and Dependent_name= ?)";
+	        String deleteDpnd = "DELETE FROM dependent WHERE (Essn = ? and Dependent_name= ?)";
 	        try (PreparedStatement pstmt = conn.prepareStatement(deleteDpnd)) {
 	        	pstmt.setString(1, Essn);
 	        	pstmt.setString(2, Dependent_name);
 	            int rowsAffected = pstmt.executeUpdate();
-	            System.out.println("Deleted " + rowsAffected + " dependent(s) from DEPENDENT table.");
+	            System.out.println("Deleted " + rowsAffected + " dependent(s) from dependent table.");
 	        }
 	    }
+	private static void insertProject(Connection conn, String Pname, int Pnumber, String Plocation, int Dnum ) throws SQLException {
+        String sql = "INSERT INTO project (Pname, Pnumber, Plocation,Dnum) VALUES (?, ?, ?, ?);";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, Pname);
+            pstmt.setInt(2, Pnumber);
+            pstmt.setString(3,Plocation);
+            pstmt.setInt(4, Dnum);
+            pstmt.executeUpdate();
+            System.out.println("Inserted row into Project table: " + Pnumber );
+        }
+    }
+	private static void deleteProject(Connection conn, int Pnumber) throws SQLException {
+		//have to remove from WORKS_ON table first
+        String deleteSql = "DELETE FROM works_on WHERE Pnumber = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(deleteSql)) {
+            pstmt.setInt(1, Pnumber);
+            int rowsAffected = pstmt.executeUpdate();
+            System.out.println("Deleted " + rowsAffected + " Worker(s) from the works_on table.");
+        }    
+		
+		String delete = "DELETE FROM project WHERE Pnumber = ?;";
+        try (PreparedStatement pstmt = conn.prepareStatement(delete)) {
+        	pstmt.setInt(1, Pnumber);
+        	int rowsAffected = pstmt.executeUpdate();
+            System.out.println("Deleted " + rowsAffected + " project(s) from project table.");
+        }
+    }
 
 }
