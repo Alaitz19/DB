@@ -26,39 +26,52 @@ public class Project {
     }
 
     public static void main(String[] args) {
+    	
         Connection conn = null;
         try {
             System.out.println("Welcome to this query application\n");
-            System.out.println("Connection to Alaitz's database:\n");
-            conn = getConnection();
-            connection = conn;
-            conn.setAutoCommit(false);
-            System.out.println("First let's make some configurations in the database:\n");
 
-            // INSERT INTO department table without using savepoint
-            System.out.println("Inserting into department table without using savepoint:");
-            insertDepartment(conn, "Finance", 6, "123456789", "2010-09-30");
-            conn.commit();
-            System.out.println("Transaction committed successfully.");
+            int option = Integer.parseInt(JOptionPane.showInputDialog("Choose an option:\n1. Configure Database\n2. Execute Queries"));
 
-            // INSERT INTO department table using savepoint
-            System.out.println("\nInserting into department table using savepoint:");
-            conn.setAutoCommit(false);
-            Savepoint savepoint1 = conn.setSavepoint("savedfirst1");
-            insertDepartment(conn, "Marketing", 2, "453453453", "2002-05-22");
-            insertDepartment(conn, "Human resources", 3, "453453453", "2000-06-20");
-            conn.commit();
-            System.out.println("Transaction committed successfully.");
+            if (option == 1) {
+                System.out.println("Connection to Alaitz's database:\n");
+                conn = getConnection();
+                connection = conn;
+                conn.setAutoCommit(false);
+                System.out.println("First let's make some configurations in the database:\n");
 
-            // DELETE FROM person table
-            System.out.println("\nDeleting records from the person table:");
-            deletePerson(conn, "Abigail");
-            deletePerson(conn, "Alexander");
-            conn.commit();
-            System.out.println("Transaction committed successfully.");
+                // INSERT INTO department table without using savepoint
+                System.out.println("Inserting into department table without using savepoint:");
+                insertDepartment(conn, "Finance", 6, "123456789", "2010-09-30");
+                conn.commit();
+                System.out.println("Transaction committed successfully.");
 
-            // Execute queries
-            Querys();
+                // INSERT INTO department table using savepoint
+                System.out.println("\nInserting into department table using savepoint:");
+                conn.setAutoCommit(false);
+                Savepoint savepoint1 = conn.setSavepoint("savedfirst1");
+                insertDepartment(conn, "Marketing", 2, "453453453", "2002-05-22");
+                insertDepartment(conn, "Human resources", 3, "453453453", "2000-06-20");
+                conn.commit();
+                System.out.println("Transaction committed successfully.");
+                
+                //UPDATE one optional excursion tripto madrid in this case
+                updateOptionalExcursion(conn);
+
+                // DELETE FROM person table
+                System.out.println("\nDeleting records from the person table:");
+                deletePerson(conn, "Abigail");
+                deletePerson(conn, "Alexander");
+                conn.commit();
+                System.out.println("Transaction committed successfully.");
+            } else if (option == 2) {
+                // Execute queries
+            	 System.out.println("Connection to Alaitz's database:\n");
+                 conn = getConnection();
+                 Querys(conn);
+            } else {
+                System.out.println("Invalid option selected. Exiting...");
+            }
 
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -121,101 +134,119 @@ public class Project {
                     "Deleted " + rowsAffected + " record(s) from the 'person' table for nameId: " + nameId);
         }
     }
-
-    public static void Querys() {
-        String query = JOptionPane.showInputDialog("Insert a number for a query(1-5, 0 EXIT).");
-        try {
-            int queryNum = Integer.parseInt(query);
-            if (queryNum >= 1 && queryNum <= 5) {
-                Querys(queryNum);
-            } else if (queryNum == 0) {
-                System.out.println("Exit.\n");
-            } else {
-                System.out.println("ERROR. It must be a number from 0 to 5.\n");
-                Querys();
+        private static void updateOptionalExcursion(Connection conn) throws SQLException {
+            String updateSql = "UPDATE `optional_excursion` SET `Price` = 75 WHERE `TripTo` = 'Madrid' AND `DepartureDate` = '2018-05-01' AND `CodeExc` = 13";
+            try (PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
+                int rowsAffected = pstmt.executeUpdate();
+                System.out.println("Updated " + rowsAffected + " row(s) in the 'optional_excursion' table.");
             }
-        } catch (NumberFormatException e) {
-            System.out.println("ERROR. It must be a number.\n");
-            Querys();
-        }
+        
     }
+    
 
-    public static void Querys(int query) {
+
+    public static void Querys(Connection conn) {
         try {
+            boolean exit = false;
+            while (!exit) {
+                statement = conn.createStatement();
 
-            statement = connection.createStatement();
+                String query = JOptionPane.showInputDialog("Insert a number for a query(1-5, 0 EXIT).");
+                int queryNum = Integer.parseInt(query);
 
-            switch (query) {
-            case 1:
-                try {
-                    System.out.println(
-                            "Find the names of guides who have gone on trips with customers whose names start with the same letter as the guide's name:\n");
-                    ResultSet result1 = statement.executeQuery(
-                            "SELECT g.Name FROM Guide AS g WHERE g.Ssn IN ( SELECT t.GuideSsn FROM Trip AS t JOIN Customer AS c ON t.CustId = c.CustId WHERE c.Name LIKE CONCAT(g.Name, '%'))");
-                    while (result1.next()) {
-                        System.out.print(result1.getString("Name") + "\n");
+                if (queryNum == 0) {
+                    exit = true;
+                } else if (queryNum >= 1 && queryNum <= 5) {
+                    // Print the query being executed
+                    System.out.println("Executing query " + queryNum + ":\n");
+
+                    switch (queryNum) {
+                        case 1:
+                            System.out.println("Find the names of guides who have gone on trips with customers whose names start with the same letter as the guide's name:\n");
+                            ResultSet result1 = statement.executeQuery(
+                                    "SELECT g.guidename FROM tourguide AS g WHERE g.GuideId IN ( SELECT t.GuideId FROM trip AS t JOIN customer AS c ON t.GuideId = c.CustomerId WHERE c.custname LIKE CONCAT(g.guidename, '%'))");
+                            while (result1.next()) {
+                                System.out.print(result1.getString("guidename") + "\n");
+                            }
+                            break;
+                        case 2:
+                            System.out.println("Find people who have not made purchases over 10,000 at the restaurant 'KingMeal', those who don't frequent 'GoodFood', individuals who haven't eaten 'eggsbenedicte', and patrons who haven't been served dishes at 'LittleFat' priced higher than 10.00.:\n");
+                            ResultSet result2 = statement.executeQuery(
+                            	    "SELECT DISTINCT p.nameId " +
+                            	    "FROM person p " +
+                            	    "WHERE NOT EXISTS ( " +
+                            	    "    SELECT * " +
+                            	    "    FROM sales s " +
+                            	    "    WHERE s.restaurname = 'KingMeal' AND s.amount > 10000 " +
+                            	    ") " +
+                            	    "AND NOT EXISTS ( " +
+                            	    "    SELECT * " +
+                            	    "    FROM frequents f " +
+                            	    "    WHERE f.nameId = p.nameId AND f.restaurname = 'GoodFood' " +
+                            	    ") " +
+                            	    "AND NOT EXISTS ( " +
+                            	    "    SELECT * " +
+                            	    "    FROM eats e " +
+                            	    "    WHERE e.nameId = p.nameId AND e.dish = 'eggsbenedicte' " +
+                            	    ") " +
+                            	    "AND NOT EXISTS ( " +
+                            	    "    SELECT * " +
+                            	    "    FROM serves se " +
+                            	    "    WHERE se.restaurname = 'LittleFat' AND se.price > 10.00 " +
+                            	    ")");
+                            	while (result2.next()) {
+                            	    System.out.print(result2.getString("nameId") + "\n");
+                            	}
+                            break;
+                        case 3:
+                            System.out.println("Find the names that appear in the Guides table but that do not appear in the Customers table:\n");
+                            ResultSet result3 = statement.executeQuery(
+                                    "SELECT guidename FROM tourguide WHERE guidename NOT IN (SELECT custname FROM customer)");
+                            while (result3.next()) {
+                                System.out.print(result3.getString("guidename") + "\n");
+                            }
+                            break;
+                        case 4:
+                            String language = JOptionPane.showInputDialog("Insert a language: ");
+                            System.out.println("These are the names of the customers of trips with guides speaking the language you have chosen:\n");
+                            ResultSet result4 = statement.executeQuery(
+                                "SELECT DISTINCT custname " +
+                                "FROM trip T, tourguide TG, languages L, hotel_trip_customer HTC, customer C " +
+                                "WHERE T.guideId = TG.GuideId " +
+                                "AND TG.guideId = L.guideId " +
+                                "AND L.Lang = '" + language + "' " +
+                                "AND T.TripTo = HTC.TripTo " +
+                                "AND HTC.CustomerId = C.CustomerId");
+                            while (result4.next()) {
+                                System.out.print(result4.getString("custname") + "\n");
+                            }
+                            break;
+                        case 5:
+                            String cityname = JOptionPane.showInputDialog("Insert a city: ");
+                            System.out.println("This are the trips which are in the city you have choosen:\n");
+                            ResultSet result5 = statement.executeQuery(
+                                    "SELECT TripTo, DepartureDate FROM trip WHERE CityDeparture='" + cityname + "'");
+                            while (result5.next()) {
+                                System.out.print(result5.getString("TripTo") + ", " + result5.getString("DepartureDate") + "\n");
+                            }
+                            break;
+                        default:
+                            System.out.println("ERROR. Invalid query.\n");
+                            break;
                     }
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    System.out.println("ERROR executing query 1.\n");
+
+                    // Print statement for query completion
+                    System.out.println("Query " + queryNum + " executed successfully.\n");
+                } else {
+                    System.out.println("ERROR. It must be a number from 0 to 5.\n");
                 }
-                break;
-            case 2:
-                System.out.println("Find the ingredients that have not been used in any menu item:\n");
-                ResultSet result2 = statement.executeQuery(
-                    "SELECT * FROM Ingredients i WHERE NOT EXISTS (" +
-                    "    SELECT * FROM Menu m WHERE NOT EXISTS (" +
-                    "        SELECT * FROM Recipe r WHERE r.MenuItemID = m.MenuItemID AND r.IngredientID = i.IngredientID" +
-                    "    )" +
-                    ")");
-                while (result2.next()) {
-                    System.out.print(result2.getString("ingredient name") + "\n");
-                }
-                break;
-            case 3:
-                System.out.println(
-                        "Find the names that appear in the Guides table but that do not appear in the Customers table:\n");
-                ResultSet result3 = statement.executeQuery(
-                        "select guidename from TOURGUIDE tg where tg.guidename NOT IN(select custname from CUSTOMER ) ");
-                while (result3.next()) {
-                    System.out.print(result3.getString("guidename") + "\n");
-                }
-                break;
-            case 4:
-                String language = JOptionPane.showInputDialog("Insert a language: ");
-                System.out.println("These are the names of the customers of trips with guides speaking the language you have chosen:\n");
-                ResultSet result4 = statement.executeQuery(
-                    "SELECT DISTINCT custname " +
-                    "FROM TRIP T, TOURGUIDE TG, LANGUAGE L, TRIP_CUSTOMER TC, CUSTOMER C " +
-                    "WHERE T.guideId = TG.GuideId " +
-                    "AND TG.LanguageId = L.LanguageId " +
-                    "AND L.LanguageName = '" + language + "' " +
-                    "AND T.TripId = TC.TripId " +
-                    "AND TC.CustomerId = C.CustomerId");
-                while (result4.next()) {
-                    System.out.print(result4.getString("custname") + "\n");
-                }
-                break;
-            case 5:
-                String cityname = JOptionPane.showInputDialog("Insert a city: ");
-                System.out.println("This are the trips which are in the city you have choosen:\n");
-                ResultSet result5 = statement.executeQuery(
-                        "select TripTo, DepartureDate From TRIP Where TRIP.CityDeparture='" + cityname + "' ");
-                while (result5.next()) {
-                    System.out.print(result5.getString("TripTo") + ", " + result5.getString("DepartureDate") + "\n");
-                }
-                break;
-            default:
-                System.out.println("ERROR. Invalid query.\n");
-                break;
+
+                statement.close();
             }
-
-            statement.close();
-            connection.close();
-
-        } catch (SQLException e) {
+        } catch (SQLException | NumberFormatException e) {
             e.printStackTrace();
             System.out.println("ERROR. Connection failed!\n");
         }
     }
 }
+
