@@ -31,7 +31,7 @@ public class Project {
         try {
             System.out.println("Welcome to this query application\n");
 
-            int option = Integer.parseInt(JOptionPane.showInputDialog("Choose an option:\n1. Configure Database\n2. Execute Queries"));
+            int option = Integer.parseInt(JOptionPane.showInputDialog("Choose an option:\n1. Configure Database\n2. Revert all changes \n3. Execute queries:"));
 
             if (option == 1) {
                 System.out.println("Connection to Alaitz's database:\n");
@@ -65,12 +65,52 @@ public class Project {
                 conn.commit();
                 System.out.println("Transaction committed successfully.");
             } else if (option == 2) {
-                // Execute queries
-            	 System.out.println("Connection to Alaitz's database:\n");
-                 conn = getConnection();
-                 Querys(conn);
-            } else {
-                System.out.println("Invalid option selected. Exiting...");
+            	try {
+            	    conn = getConnection();
+            	    conn.setAutoCommit(false);
+
+            	    // Insert statements
+            	    insertPerson(conn, "Abigail", 30, "Female", "123456");
+            	    insertPerson(conn, "Alexander", 35, "Male", "789123");
+
+            	    // Update statement
+            	    updateOptionalExcursion(conn);
+
+            	    // Delete statements
+            	    deleteDepartment(conn, 2);
+            	    deleteDepartment(conn, 3);
+            	    deleteDepartment(conn, 6);
+
+            	    conn.commit();
+            	    System.out.println("Database changes applied successfully.");
+            	} catch (SQLException | ClassNotFoundException e) {
+            	    e.printStackTrace();
+            	    try {
+            	        if (conn != null) {
+            	            System.out.println("Rolling back transaction...");
+            	            conn.rollback();
+            	        }
+            	    } catch (SQLException ex) {
+            	        System.out.println("Error rolling back transaction: " + ex.getMessage());
+            	    }
+            	} finally {
+            	    if (conn != null) {
+            	        try {
+            	            conn.setAutoCommit(true); // Reset auto-commit to true
+            	            conn.close();
+            	            System.out.println("Connection closed successfully.");
+            	        } catch (SQLException e) {
+            	            e.printStackTrace();
+            	        }
+            	    }
+            	}
+
+            }else if (option == 3) {
+            	  // Execute queries
+           	 System.out.println("Connection to Alaitz's database:\n");
+                conn = getConnection();
+                Querys(conn);
+               
             }
 
         } catch (SQLException | ClassNotFoundException e) {
@@ -135,13 +175,33 @@ public class Project {
         }
     }
         private static void updateOptionalExcursion(Connection conn) throws SQLException {
-            String updateSql = "UPDATE `optional_excursion` SET `Price` = 75 WHERE `TripTo` = 'Madrid' AND `DepartureDate` = '2018-05-01' AND `CodeExc` = 13";
+            String updateSql = "UPDATE `optional_excursion` SET `Price` = 800 WHERE `TripTo` = 'Madrid' AND `DepartureDate` = '2018-05-01' AND `CodeExc` = 13";
             try (PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
                 int rowsAffected = pstmt.executeUpdate();
                 System.out.println("Updated " + rowsAffected + " row(s) in the 'optional_excursion' table.");
             }
         
     }
+        private static void insertPerson(Connection conn, String nameId, int age, String gender, String id) throws SQLException {
+            String sql = "INSERT INTO person (nameId, age, gender, id) VALUES (?, ?, ?, ?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, nameId);
+                pstmt.setInt(2, age);
+                pstmt.setString(3, gender);
+                pstmt.setString(4, id);
+                pstmt.executeUpdate();
+                System.out.println("Inserted row into person table: " + nameId);
+            }
+        }
+
+        private static void deleteDepartment(Connection conn, int dnumber) throws SQLException {
+            String deleteSql = "DELETE FROM department WHERE Dnumber = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(deleteSql)) {
+                pstmt.setInt(1, dnumber);
+                int rowsAffected = pstmt.executeUpdate();
+                System.out.println("Deleted " + rowsAffected + " record(s) from the 'department' table for Dnumber: " + dnumber);
+            }
+        }
     
 
 
