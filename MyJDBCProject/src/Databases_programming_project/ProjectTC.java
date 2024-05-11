@@ -42,18 +42,16 @@ public class ProjectTC {
 	            
                 
                 //INSERT in Dependent table
-	            
                 System.out.println("Inserting into dependent table without using savepoint:");
 	            insertDependent(conn, "123456789", "Tom", "M", "1992-09-30","Son");
 	            insertDependent(conn, "123456789", "Mark", "M", "1988-03-30","Uncle");
-	            
 	            conn.commit();
 	            System.out.println("Transaction committed successfully.");
 	            
 	            // INSERT into project table using SAVEPOINT
 	            System.out.println("Inserting into project table using savepoint:");
 	            insertProject(conn, "ProductJ", 55, "New York", 5);
-	            sv1=conn.setSavepoint();
+	            sv1=conn.setSavepoint(); // savepoint
 	            insertProject(conn,"ProductT",22,"Rome",1);
 	            insertProject(conn, "ProductFake", 59, "Los Angeles", 4);
 	            conn.commit();
@@ -65,7 +63,7 @@ public class ProjectTC {
 	            System.out.println("Update commited successfully.");
 	            
 	            // DELETE from tables
-	            System.out.println("DELETE:"); 
+	            System.out.println("Delete a project and some dependents:"); 
 	        	deleteProject(conn, 1);
 	        	deleteDependent(conn,"333445555","Alice");
 	        	deleteDependent(conn,"333445555","Theodore");
@@ -131,6 +129,7 @@ public class ProjectTC {
                 if (conn != null) {
                     System.out.println("Rolling back transaction...");
                     if(sv1!=null) {
+                    	// savepoint
 	                    conn.rollback(sv1);
 	                    conn.commit();
                     }else{
@@ -153,6 +152,10 @@ public class ProjectTC {
 
         
 	}
+	
+	// Function to add, remove and update data: 
+	
+	// Insert dependent into Dependent table
 	private static void insertDependent(Connection conn, String Essn, String Dependent_name, String Sex, String Bdate, String Relationship) throws SQLException {
         String sql = "INSERT INTO dependent (Essn, Dependent_name, Sex, Bdate, Relationship) VALUES (?, ?, ?, ?, ?);";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -167,7 +170,7 @@ public class ProjectTC {
     }
 	
 	
-	// ADDING AND REMOVING SOME DATA
+	// Delete from dependent table
 	private static void deleteDependent(Connection conn, String Essn,String Dependent_name) throws SQLException {
         String deleteDpnd = "DELETE FROM dependent WHERE (Essn = ? and Dependent_name= ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(deleteDpnd)) {
@@ -178,6 +181,7 @@ public class ProjectTC {
         }
     }
 	
+	// Update Works_on table
 	private static void updateWorkson(Connection conn) throws SQLException {
         String updateSql = "UPDATE works_on SET Pno =1 WHERE Essn = 666884444 AND Pno =3";
         try (PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
@@ -186,6 +190,8 @@ public class ProjectTC {
         }
     
 	}
+	
+	// Insert in Project table
 	private static void insertProject(Connection conn, String Pname, int Pnumber, String Plocation, int Dnum ) throws SQLException {
         String sql = "INSERT INTO project (Pname, Pnumber, Plocation,Dnum) VALUES (?, ?, ?, ?);";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -197,6 +203,8 @@ public class ProjectTC {
             System.out.println("Inserted row into Project table: " + Pnumber );
         }
     }
+	
+	// Insert Worker in Works_on table
 	private static void insertWorker(Connection conn, String Essn, int Pno, String Hours) throws SQLException {
         String sql = "INSERT INTO works_on (Essn, Pno, Hours) VALUES (?, ?, ?);";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -208,6 +216,7 @@ public class ProjectTC {
         }
     }
 
+	// Delete from Project table
 	private static void deleteProject(Connection conn, int Pnumber) throws SQLException {
 		//have to remove from WORKS_ON table first
         String deleteSql = "DELETE FROM works_on WHERE Pno= ?";
@@ -225,9 +234,7 @@ public class ProjectTC {
         }
     }
 	
-	
-	
-	
+	// Development of the five queries:
 	public static void Querys(Connection conn) {
         try {
             boolean flag= false;
@@ -317,7 +324,7 @@ public class ProjectTC {
                                 System.out.print(result4.getString("Pname") +" , "+ result4.getString("Pnumber") + "\n");
                             }
                             break;
-                        case 5: //TODO missing fifth query
+                        case 5:
                         	System.out.println("Retrieve the names, the ids and the phone numbers of those customers that are staying in a hotel in the city of ? and order them by name:\n");
                             String city5 = JOptionPane.showInputDialog("Insert a city: ");
                             
