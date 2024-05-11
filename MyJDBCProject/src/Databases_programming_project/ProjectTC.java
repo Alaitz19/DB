@@ -1,7 +1,6 @@
 package Databases_programming_project;
 
 import java.sql.*;
-import java.util.Scanner; //TODO to be removed
 
 import javax.swing.JOptionPane;
 
@@ -27,8 +26,6 @@ public class ProjectTC {
         return con;
     }
 	public static void main(String[] args) {
-		//Connection conn = null;
-		Scanner input=new Scanner(System.in);
 		Savepoint sv1=null;
 		Connection conn = null;
         try {
@@ -42,28 +39,18 @@ public class ProjectTC {
                 connection = conn;
                 conn.setAutoCommit(false);
                 System.out.println("First let's make some configurations in the database:\n");
-	            //INSERT in Dependent table
-	            System.out.println("Inserting into dependent table without using savepoint:");
+	            
+                
+                //INSERT in Dependent table
+	            
+                System.out.println("Inserting into dependent table without using savepoint:");
 	            insertDependent(conn, "123456789", "Tom", "M", "1992-09-30","Son");
 	            insertDependent(conn, "123456789", "Mark", "M", "1988-03-30","Uncle");
 	            
 	            conn.commit();
 	            System.out.println("Transaction committed successfully.");
 	            
-	          //TODO to be removed, just for debugging purpose
-	            System.out.println("DELETE?"); 
-	            String dl=input.nextLine();
-	            
-	            if(dl.equalsIgnoreCase("yes")) {
-	            	deleteDependent(conn, "123456789", "Tom");
-	            	deleteDependent(conn, "123456789", "Mark");
-	            	
-	            	System.out.println("Delete committed successfully.");
-	            	conn.commit();
-	            }
-	            
-	            //INSERT into project table using SAVEPOINT
-	           
+	            // INSERT into project table using SAVEPOINT
 	            System.out.println("Inserting into project table using savepoint:");
 	            insertProject(conn, "ProductJ", 55, "New York", 5);
 	            sv1=conn.setSavepoint();
@@ -72,17 +59,18 @@ public class ProjectTC {
 	            conn.commit();
 	            System.out.println("Transaction committed successfully.");
 	            
-	            //TODO MISSING THE UPDATE
-	            // TODO the update in works on, change the project on 2 of the workers
+	           // UPDATE table works_on
+	            System.out.println("Updating works-on table by changing the number of the project to a worker:");
+	            updateWorkson(conn);
+	            System.out.println("Update commited successfully.");
 	            
-	            // TODO DELETE FROM PROJECT TABLE
+	            // DELETE from tables
 	            System.out.println("DELETE:"); 
-	        	deleteProject(conn, 55);
+	        	deleteProject(conn, 1);
 	        	deleteDependent(conn,"333445555","Alice");
 	        	deleteDependent(conn,"333445555","Theodore");
 	        	System.out.println("Delete committed successfully.");
-	        	conn.commit();       
-	            input.close(); 
+	        	conn.commit();        
             }else if(option==2){
             	try {
             	    conn = getConnection();
@@ -91,15 +79,19 @@ public class ProjectTC {
             	    // Insert statements
             	    insertDependent(conn,"333445555","Alice","F","1986-04-05","Daughter");
             	    insertDependent(conn,"333445555","Theodore","M","1983-10-25","Son");
-            	    	
+            	    insertProject(conn,"ProductX",1,"Bellaire",5);
+            	    insertWorker(conn,"123456789",1,"32.5");
+            	    insertWorker(conn,"453453453",1,"20.0");
+            	    
             	    // Update statement
-     // TODO with project in works on update(conn);
+            	    // The update was done on a row that was deleted, so we insert the row with the correct project number
+            	    insertWorker(conn,"666884444",3,"40.0");
 
             	    // Delete statements
             	    deleteDependent(conn, "123456789", "Tom");
 	            	deleteDependent(conn, "123456789", "Mark");
 	            	deleteProject(conn,22);
-	            	//deleteProject(conn,55);
+	            	deleteProject(conn,55);
 	            	deleteProject(conn,59);
 	            	
             	    conn.commit();
@@ -132,7 +124,7 @@ public class ProjectTC {
               conn = getConnection();
               Querys(conn);
              
-          }//TODO check for savepoint 
+          }
         }catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
             try {
@@ -185,6 +177,15 @@ public class ProjectTC {
             System.out.println("Deleted " + rowsAffected + " dependent(s) from dependent table.");
         }
     }
+	
+	private static void updateWorkson(Connection conn) throws SQLException {
+        String updateSql = "UPDATE works_on SET Pno =1 WHERE Essn = 666884444 AND Pno =3";
+        try (PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
+            int rowsAffected = pstmt.executeUpdate();
+            System.out.println("Updated " + rowsAffected + " row(s) in the 'Works_on' table.");
+        }
+    
+	}
 	private static void insertProject(Connection conn, String Pname, int Pnumber, String Plocation, int Dnum ) throws SQLException {
         String sql = "INSERT INTO project (Pname, Pnumber, Plocation,Dnum) VALUES (?, ?, ?, ?);";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -196,6 +197,17 @@ public class ProjectTC {
             System.out.println("Inserted row into Project table: " + Pnumber );
         }
     }
+	private static void insertWorker(Connection conn, String Essn, int Pno, String Hours) throws SQLException {
+        String sql = "INSERT INTO works_on (Essn, Pno, Hours) VALUES (?, ?, ?);";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, Essn);
+            pstmt.setInt(2, Pno);
+            pstmt.setString(3,Hours);
+            pstmt.executeUpdate();
+            System.out.println("Inserted row into Works_on table: " + Essn+ " "+Pno );
+        }
+    }
+
 	private static void deleteProject(Connection conn, int Pnumber) throws SQLException {
 		//have to remove from WORKS_ON table first
         String deleteSql = "DELETE FROM works_on WHERE Pno= ?";
@@ -285,7 +297,7 @@ public class ProjectTC {
                             break;
                         case 4:
                             
-                            System.out.println("Retrieve a list of project name and numbers for projects that involve an employee whose last name is '?':\n");
+                            System.out.println("Retrieve a list of project's names and numbers for projects that involve an employee whose last name is '?':\n");
                             String lname = JOptionPane.showInputDialog("Insert a last name: ");
                             ResultSet result4 = statement.executeQuery(
                                 "  SELECT DISTINCT p.Pname,p.Pnumber "
@@ -306,16 +318,23 @@ public class ProjectTC {
                             }
                             break;
                         case 5: //TODO missing fifth query
-                            /*
-                            ResultSet result5 = statement.executeQuery(
+                        	System.out.println("Retrieve the names, the ids and the phone numbers of those customers that are staying in a hotel in the city of ? and order them by name:\n");
+                            String city5 = JOptionPane.showInputDialog("Insert a city: ");
+                            
+                            ResultSet result5 = statement.executeQuery(""
+                            		+ "SELECT c.custname,htc.CustomerId, c.custphone "
+                            		+ "FROM hotel_trip_customer AS htc NATURAL JOIN customer AS c "
+                            		+ "	INNER JOIN hotel AS h ON htc.HotelId=h.HotelId "
+                            		+ "WHERE h.hotelcity='"+city5+"' "
+                            		+ "ORDER BY c.custname;"
                                     );
                             while (result5.next()) {
-                                System.out.print();
+                            	System.out.print(result5.getString("custname") +" , "+ result5.getString("CustomerId") +" , "+ result5.getString("custphone") + "\n");
                             }
                             break;
                         default:
                             System.out.println("ERROR. Invalid query.\n");
-                            break;*/
+                            break;
                     }
 
                     // Print statement for query completion
