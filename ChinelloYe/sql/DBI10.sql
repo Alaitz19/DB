@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 10.88.0.21:3306
--- Creato il: Mag 13, 2024 alle 13:31
+-- Creato il: Mag 13, 2024 alle 16:12
 -- Versione del server: 8.0.33
 -- Versione PHP: 8.2.8
 
@@ -5328,24 +5328,18 @@ CREATE TABLE `serves` (
 INSERT INTO `serves` (`restaurname`, `dish`, `price`) VALUES
 ('DearGourmet', 'cheesecake', 9.00),
 ('DearGourmet', 'chickensausage', 13.00),
-('DearGourmet', 'pepperonipizza', 8.00),
 ('Dish2Eat', 'cheesecake', 10.00),
 ('Dish2Eat', 'eggsbenedicte', 11.00),
 ('EatnGo', 'cheesecake', 8.00),
 ('EatnGo', 'eggsbenedicte', 9.00),
 ('GoodFood', 'cheesecake', 10.00),
-('GoodFood', 'mushroomsoup', 11.00),
 ('KingMeal', 'cheesecake', 9.00),
 ('KingMeal', 'chickensausage', 12.00),
 ('KingMeal', 'eggsbenedicte', 12.00),
-('KingMeal', 'pepperonipizza', 12.00),
 ('LittleFat', 'cheesecake', 7.00),
 ('LittleFat', 'chickensausage', 10.00),
-('LittleFat', 'mushroomsoup', 9.00),
-('LittleFat', 'pepperonipizza', 10.00),
 ('NewYorkTaste', 'cheesecake', 7.00),
-('NewYorkTaste', 'eggsbenedicte', 9.00),
-('NewYorkTaste', 'pepperonipizza', 8.00);
+('NewYorkTaste', 'eggsbenedicte', 9.00);
 
 -- --------------------------------------------------------
 
