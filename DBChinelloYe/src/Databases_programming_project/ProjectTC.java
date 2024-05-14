@@ -73,33 +73,61 @@ public class ProjectTC {
     	try {
 	        conn.setAutoCommit(false);
 	        System.out.println("First let's make some configurations in the database:\n");
+	        System.out.println("\n\n");
 	        
 	        //INSERT into Dependent table
 	        System.out.println("Inserting into dependent table without using savepoint:");
+	        getDependentTable(conn);
+	        System.out.println("\n");
 	        insertDependent(conn, "123456789", "Tom", "M", "1992-09-30","Son");
 	        insertDependent(conn, "123456789", "Mark", "M", "1988-03-30","Uncle");
+	        System.out.println("\n");
+	        getDependentTable(conn);
 	        conn.commit();
 	        System.out.println("Transaction committed successfully.");
+	        System.out.println("\n\n");
 	        
 	        // INSERT into project table using SAVEPOINT
 	        System.out.println("Inserting into project table using savepoint:");
+	        getProjectTable(conn);
+	        System.out.println("\n");
 	        insertProject(conn, "ProductJ", 55, "New York", 5);
 	        savepoint1 = conn.setSavepoint("savedfirst1"); // savepoint
 	        insertProject(conn,"ProductT",22,"Rome",1);
 	        insertProject(conn, "ProductFake", 59, "Los Angeles", 4);
+	        getProjectTable(conn);
 	        conn.commit();
 	        System.out.println("Transaction committed successfully.");
+	        System.out.println("\n\n");
 	        
 	       // UPDATE table works_on
 	        System.out.println("Updating works-on table by changing the number of the project to a worker:");
+	        getWorks_onTable(conn);
+	        System.out.println("\n");
 	        updateWorkson(conn);
+	        getWorks_onTable(conn);
 	        System.out.println("Update commited successfully.");
+	        System.out.println("\n\n");
 	        
 	        // DELETE from tables
 	        System.out.println("Delete a project and some dependents:"); 
-	    	deleteProject(conn, 1);
+	        System.out.println("If we delete a project, we delete also the workers that work on that project,\n so it will be shown also the works_on table: ");
+	        getProjectTable(conn);
+	        System.out.println("\n");
+	        getWorks_onTable(conn);
+	        System.out.println("\n");
+	        System.out.println("We will delete also some Dependent");
+	        getDependentTable(conn);
+	        System.out.println("\n");
+	        deleteProject(conn, 1);
 	    	deleteDependent(conn,"333445555","Alice");
 	    	deleteDependent(conn,"333445555","Theodore");
+	    	System.out.println("\n");
+	    	getProjectTable(conn);
+	    	System.out.println("\n");
+	    	getWorks_onTable(conn);
+	    	System.out.println("\n");
+	    	getDependentTable(conn);
 	    	System.out.println("Delete committed successfully.");
 	    	conn.commit();        
     	} catch (SQLException e) {
@@ -144,6 +172,14 @@ public class ProjectTC {
 	    	deleteProject(conn,22);
 	    	deleteProject(conn,55);
 	    	deleteProject(conn,59);
+	    	System.out.println("\n\n");
+	    	System.out.println("This is the unchanged table that were used in the transactions: ");
+	    	getProjectTable(conn);
+	    	System.out.println("\n");
+	        getWorks_onTable(conn);
+	        System.out.println("\n");
+	        getDependentTable(conn);
+	        System.out.println("\n");
 	    	
 		    conn.commit();
 		    System.out.println("Database changes applied successfully.");
@@ -409,6 +445,54 @@ public class ProjectTC {
             System.out.println("Deleted " + rowsAffected + " project(s) from project table.");
         }
     }
+	/**
+     * Shows in output the dependent table.
+     * @param conn Connection object representing the database connection.
+     * @throws SQLException If an SQL exception occurs during the process.
+     */
+	private static void getDependentTable(Connection conn) throws SQLException {
+		try(Statement statement = conn.createStatement()){
+			ResultSet result = statement.executeQuery("SELECT * FROM dependent");
+			System.out.println("DEPENDENT TABLE");
+			System.out.println("------------------------------------------------------");
+			while (result.next()) {
+				System.out.print(result.getString("Essn") + " , " + result.getString("Dependent_name")+ " , " + result.getString("Sex")+ " , " + result.getString("Bdate")+ " ,  " + result.getString("Relationship") + "\n");
+			}
+			System.out.println("------------------------------------------------------");
+		}
+	}
+	/**
+     * Shows in output the project table.
+     * @param conn Connection object representing the database connection.
+     * @throws SQLException If an SQL exception occurs during the process.
+     */
+	private static void getProjectTable(Connection conn) throws SQLException {
+		try(Statement statement = conn.createStatement()){
+			ResultSet result = statement.executeQuery("SELECT * FROM project");
+			System.out.println("PROJECT TABLE");
+			System.out.println("------------------------------------------------------");
+			while (result.next()) {
+				System.out.print(result.getString("Pname") + " , " + result.getString("Pnumber")+ " , " + result.getString("Plocation")+ " , " + result.getString("Dnum") + "\n");
+			}
+			System.out.println("------------------------------------------------------");
+		}
+	}
+	/**
+     * Shows in output the works_on table.
+     * @param conn Connection object representing the database connection.
+     * @throws SQLException If an SQL exception occurs during the process.
+     */
+	private static void getWorks_onTable(Connection conn) throws SQLException {
+		try(Statement statement = conn.createStatement()){
+			ResultSet result = statement.executeQuery("SELECT * FROM works_on");
+			System.out.println("WORKS_ON TABLE");
+			System.out.println("------------------------------------------------------");
+			while (result.next()) {
+				System.out.print(result.getString("Essn") + " , " + result.getString("Pno")+ " , " + result.getString("Hours")+ "\n");
+			}
+			System.out.println("------------------------------------------------------");
+		}
+	}
 }
 	
 	
