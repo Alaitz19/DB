@@ -83,7 +83,7 @@ public class ProjectAY {
         System.out.println("Transaction committed successfully.");
 
         //UPDATE one optional excursion trip to Madrid
-        updateOptionalExcursion(conn);
+        updateOptionalExcursion(conn,800);
 
         // DELETE FROM person table
         System.out.println("\nDeleting records from the person table:");
@@ -108,7 +108,7 @@ public class ProjectAY {
             insertPerson(conn, "Alexander", 35, "Male", "789123");
 
             // Update statement
-            updateOptionalExcursion(conn);
+            updateOptionalExcursion(conn,140);
 
             // Delete statements
             deleteDepartment(conn, 2);
@@ -283,11 +283,13 @@ public class ProjectAY {
     /**
      * Updates an optional excursion in the database.
      * @param conn Connection object representing the database connection.
+     * @param price The new price for the optional excursion.
      * @throws SQLException If an SQL exception occurs during the update process.
      */
-    private static void updateOptionalExcursion(Connection conn) throws SQLException {
-        String updateSql = "UPDATE `optional_excursion` SET `Price` = 800 WHERE `TripTo` = 'Madrid' AND `DepartureDate` = '2018-05-01' AND `CodeExc` = 13";
+    private static void updateOptionalExcursion(Connection conn, double price) throws SQLException {
+        String updateSql = "UPDATE `optional_excursion` SET `Price` = ? WHERE `TripTo` = 'Madrid' AND `DepartureDate` = '2018-05-01' AND `CodeExc` = 13";
         try (PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
+            pstmt.setDouble(1, price);
             int rowsAffected = pstmt.executeUpdate();
             System.out.println("Updated " + rowsAffected + " row(s) in the 'optional_excursion' table.");
         }
