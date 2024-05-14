@@ -1,1 +1,11 @@
-a
+INSERT INTO dependent (Essn, Dependent_name, Sex, Bdate, Relationship) VALUES ('333445555','Alice','F','1986-04-05','Daughter');
+INSERT INTO dependent (Essn, Dependent_name, Sex, Bdate, Relationship) VALUES ('333445555','Theodore','M','1983-10-25','Son');
+INSERT INTO project (Pname, Pnumber, Plocation,Dnum) VALUES ('ProductX',1,'Bellaire',5);
+INSERT INTO works_on (Essn, Pno, Hours) VALUES ('123456789',1,'32.5');
+INSERT INTO works_on (Essn, Pno, Hours) VALUES ('453453453',1,'20.0');
+INSERT INTO works_on (Essn, Pno, Hours) VALUES ('666884444',3,'40.0');
+DELETE FROM dependent WHERE (Essn ='123456789' and Dependent_name='Tom');
+DELETE FROM dependent WHERE (Essn ='123456789' and Dependent_name='Mark');
+DELETE FROM project WHERE Pnumber = 22;
+DELETE FROM project WHERE Pnumber = 55;
+DELETE FROM project WHERE Pnumber = 59;
