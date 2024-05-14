@@ -1,0 +1,6 @@
+INSERT INTO person (nameId, age, gender, id) VALUES ('Abigail', 30, 'Female', '123456');
+INSERT INTO person (nameId, age, gender, id) VALUES ('Alexander', 35, 'Male', '789123');
+UPDATE `optional_excursion` SET `Price` = 75 WHERE `TripTo` = 'Madrid' AND `DepartureDate` = '2018-05-01' AND `CodeExc` = 13;
+DELETE FROM `department` WHERE `department`.`Dnumber` = 2;
+DELETE FROM `department` WHERE `department`.`Dnumber` = 3;
+DELETE FROM `department` WHERE `department`.`Dnumber` = 6;

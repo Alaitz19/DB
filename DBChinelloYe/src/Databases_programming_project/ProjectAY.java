@@ -9,14 +9,21 @@ public class ProjectAY {
     public final static String DB_URL = "jdbc:mysql://dif-mysql.ehu.es:23306/DBI51";
     public final static String DB_USERNAME = "DBI51";
     public final static String DB_PASSWORD = "DBI51";
-
+    /**
+     * Establishes a connection to the MySQL database.
+     * @return Connection object representing the database connection.
+     * @throws ClassNotFoundException If the database driver class is not found.
+     * @throws SQLException If an SQL exception occurs while establishing the connection.
+     */
     public static Connection getConnection() throws ClassNotFoundException, SQLException {
         System.out.println("==> Starting the connection <==");
         Class.forName(DB_DRIVER_CLASS);
         System.out.println("  ==> Driver loaded <==");
         return DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
     }
-
+    /**
+     * Main method to execute the database interaction application.
+     */
     public static void main(String[] args) {
         Connection conn = null;
         try {
@@ -51,7 +58,11 @@ public class ProjectAY {
             }
         }
     }
-
+    /**
+     * Configures the database by performing various transactions.
+     * @param conn Connection object representing the database connection.
+     * @throws SQLException If an SQL exception occurs during database configuration.
+     */
     private static void configureDatabase(Connection conn) throws SQLException {
         conn.setAutoCommit(false);
         System.out.println("First let's make some configurations in the database:\n");
@@ -81,7 +92,11 @@ public class ProjectAY {
         conn.commit();
         System.out.println("Transaction committed successfully.");
     }
-
+    /**
+     * Reverts the changes made to the database.
+     * @param conn Connection object representing the database connection.
+     * @throws SQLException If an SQL exception occurs during the rollback process.
+     */
     private static void revertChanges(Connection conn) throws SQLException {
         conn.setAutoCommit(false);
         Savepoint savepoint1 = null;
@@ -116,7 +131,10 @@ public class ProjectAY {
             }
         }
     }
-
+    /**
+     * Executes SQL queries interactively based on user input.
+     * @param conn Connection object representing the database connection.
+     */
     private static void executeQueries(Connection conn) {
         try {
             boolean exit = false;
@@ -213,7 +231,15 @@ public class ProjectAY {
             System.out.println("ERROR. Connection failed!\n");
         }
     }
-
+    /**
+     * Inserts a department record into the database.
+     * @param conn Connection object representing the database connection.
+     * @param name Department name.
+     * @param number Department number.
+     * @param mgrSsn Manager's SSN.
+     * @param mgrStartDate Manager's start date.
+     * @throws SQLException If an SQL exception occurs during the insertion process.
+     */
     private static void insertDepartment(Connection conn, String name, int number, String mgrSsn, String mgrStartDate) throws SQLException {
         String sql = "INSERT INTO department (Dname, Dnumber, Mgr_ssn, Mgr_start_date) VALUES (?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -225,7 +251,12 @@ public class ProjectAY {
             System.out.println("Inserted row into department table: " + name);
         }
     }
-
+    /**
+     * Deletes a person record from the database.
+     * @param conn Connection object representing the database connection.
+     * @param nameId The unique identifier of the person.
+     * @throws SQLException If an SQL exception occurs during the deletion process.
+     */
     private static void deletePerson(Connection conn, String nameId) throws SQLException {
         String deleteEatsSql = "DELETE FROM eats WHERE nameId = ?";
         try (PreparedStatement pstmtEats = conn.prepareStatement(deleteEatsSql)) {
@@ -249,7 +280,11 @@ public class ProjectAY {
                     "Deleted " + rowsAffected + " record(s) from the 'person' table for nameId: " + nameId);
         }
     }
-
+    /**
+     * Updates an optional excursion in the database.
+     * @param conn Connection object representing the database connection.
+     * @throws SQLException If an SQL exception occurs during the update process.
+     */
     private static void updateOptionalExcursion(Connection conn) throws SQLException {
         String updateSql = "UPDATE `optional_excursion` SET `Price` = 800 WHERE `TripTo` = 'Madrid' AND `DepartureDate` = '2018-05-01' AND `CodeExc` = 13";
         try (PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
@@ -257,7 +292,15 @@ public class ProjectAY {
             System.out.println("Updated " + rowsAffected + " row(s) in the 'optional_excursion' table.");
         }
     }
-
+    /**
+     * Inserts a person record into the database.
+     * @param conn Connection object representing the database connection.
+     * @param nameId The unique identifier of the person.
+     * @param age The age of the person.
+     * @param gender The gender of the person.
+     * @param id The ID of the person.
+     * @throws SQLException If an SQL exception occurs during the insertion process.
+     */
     private static void insertPerson(Connection conn, String nameId, int age, String gender, String id) throws SQLException {
         String sql = "INSERT INTO person (nameId, age, gender, id) VALUES (?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -269,7 +312,12 @@ public class ProjectAY {
             System.out.println("Inserted row into person table: " + nameId);
         }
     }
-
+    /**
+     * Deletes a department record from the database.
+     * @param conn Connection object representing the database connection.
+     * @param dnumber The department number.
+     * @throws SQLException If an SQL exception occurs during the deletion process.
+     */
     private static void deleteDepartment(Connection conn, int dnumber) throws SQLException {
         String deleteSql = "DELETE FROM department WHERE Dnumber = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(deleteSql)) {
